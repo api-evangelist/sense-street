@@ -1,0 +1,23 @@
+generated: '2026-07-21'
+method: searched
+source: https://sensestreet.com/security-compliance/security
+standards:
+- id: soc2-type-ii
+  conforms: true
+  evidence: Security & Compliance page states a maintained SOC 2 Type II attestation.
+- id: iso-27001
+  conforms: true
+  evidence: Security & Compliance page states ISO 27001 certification.
+- id: gdpr
+  conforms: true
+  evidence: Data Protection Registration Certificate; GDPR alignment marketed on homepage and privacy policy.
+- id: dora
+  conforms: true
+  evidence: DORA alignment stated on the homepage for EU capital-markets customers.
+- id: oauth2
+  conforms: false
+  evidence: No public OpenAPI; docs reference SSO / role-based access but publish no OAuth2 scheme.
+notes: >-
+  Compliance posture is published; API-level conformance (OAuth2/OIDC, RFC 9457
+  errors, pagination) could not be asserted because Sense Street publishes no
+  public OpenAPI — the API and its docs are gated behind a contact form.

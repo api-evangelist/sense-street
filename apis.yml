@@ -1,8 +1,30 @@
 aid: sense-street
+accessModel:
+  pricing: unknown
+  onboarding: unknown
+  trial: false
+  try_now: false
+  public: false
+  label: Unknown
+  confidence: low
+  source: []
+  generated: '2026-07-22'
+  method: derived
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/sense-street.png
 name: Sense Street
-description: Sense Street is a company surfaced as a portfolio company of seedcamp, speedinvest and added
-  to the API Evangelist network as a stub for enrichment. This profile is a lead awaiting the enrichment
-  pipeline.
+description: >-
+  Sense Street provides production-grade AI workflow automation for capital
+  markets, structuring unstructured OTC trading conversations in real time.
+  Its platform connects to trading communication channels such as Bloomberg,
+  Symphony and ICE and extracts RFQs, orders and market sentiment from broker
+  chat, delivering them to the desk through an AI-Enhanced Blotter and a
+  Quotebook that feeds structured market data to algo models and alerts. The
+  product supports multiple asset classes (Fixed Income, Commodities) and
+  languages with claimed 95%+ accuracy. API access — a batch processing API and
+  WebSocket streaming endpoints secured with SSO and role-based access control —
+  is offered to enterprise customers but is gated behind a sales/onboarding
+  contact, so no public OpenAPI specification is published. Sense Street is a
+  portfolio company of Seedcamp and Speedinvest.
 url: https://raw.githubusercontent.com/api-evangelist/sense-street/refs/heads/main/apis.yml
 x-type: company
 x-source: vc-portfolio
@@ -13,9 +35,15 @@ x-tier: stub
 x-tier-reason: portfolio-lead
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-17'
+modified: '2026-07-21'
 tags:
 - Company
+- Capital Markets
+- Trading
+- Artificial Intelligence
+- Fintech
+- Conversation Intelligence
+- OTC
 apis: []
 maintainers:
 - FN: Kin Lane
@@ -23,5 +51,30 @@ maintainers:
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: DomainSecurity
+  url: security/sense-street-domain-security.yml
 - type: Website
-  url: http://sensestreet.com
+  url: https://sensestreet.com
+- type: DeveloperPortal
+  url: https://docs.sensestreet.com
+- type: Documentation
+  url: https://docs.sensestreet.com
+- type: Support
+  url: https://sensestreet.com/contact
+- type: Blog
+  url: https://sensestreet.com/resources
+- type: PrivacyPolicy
+  url: https://sensestreet.com/security-compliance/privacy-policy
+- type: Compliance
+  url: https://sensestreet.com/security-compliance/security
+- type: TrustCenter
+  url: security/sense-street-trust-center.yml
+- type: Conformance
+  url: conformance/sense-street-conformance.yml
+- type: LLMsTxt
+  url: llms/sense-street-llms.txt
+x-enrichment:
+  date: '2026-07-21'
+  status: minimal
+  artifacts_added: 4
+  pass: local-v1
