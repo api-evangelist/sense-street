@@ -1,30 +1,36 @@
 aid: sense-street
 accessModel:
-  pricing: unknown
-  onboarding: unknown
+  pricing: enterprise
+  onboarding: approval
   trial: false
   try_now: false
   public: false
-  label: Unknown
-  confidence: low
-  source: []
-  generated: '2026-07-22'
-  method: derived
+  label: Enterprise · Approval required
+  confidence: high
+  source:
+  - https://www.sensestreet.com/contact
+  - https://docs.sensestreet.com/implementation-data-requirements
+  generated: '2026-08-14'
+  method: searched
 image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/sense-street.png
 name: Sense Street
 description: >-
   Sense Street provides production-grade AI workflow automation for capital
-  markets, structuring unstructured OTC trading conversations in real time.
-  Its platform connects to trading communication channels such as Bloomberg,
-  Symphony and ICE and extracts RFQs, orders and market sentiment from broker
-  chat, delivering them to the desk through an AI-Enhanced Blotter and a
-  Quotebook that feeds structured market data to algo models and alerts. The
-  product supports multiple asset classes (Fixed Income, Commodities) and
-  languages with claimed 95%+ accuracy. API access — a batch processing API and
-  WebSocket streaming endpoints secured with SSO and role-based access control —
-  is offered to enterprise customers but is gated behind a sales/onboarding
-  contact, so no public OpenAPI specification is published. Sense Street is a
-  portfolio company of Seedcamp and Speedinvest.
+  markets, structuring unstructured OTC trading conversations in real time. Its
+  platform connects to trading communication channels such as Bloomberg,
+  Symphony, ICE and Eikon and extracts RFQs, orders, quotes and market sentiment
+  from broker chat, delivering them to the desk through an AI-Enhanced Blotter
+  and a Quotebook that feeds structured market data to algo models and alerts.
+  The product supports multiple asset classes (Fixed Income, Commodities) and
+  languages with claimed 95%+ precision. Sense Street ships a real REST API — a
+  batch processing API under /api/v1 plus a WebSocket streaming API for
+  commodity quote feeds — and publishes a first-party, actively maintained
+  Python client to PyPI. The API contract itself is not public: the OpenAPI
+  exists but is issued to customers, the documentation pages are listed publicly
+  while their bodies require sign-in, and access requires a per-tenant host, VPN
+  connectivity, allowlisted static IPs and a registered RSA key pair.
+  Sense Street Limited is registered in London with an engineering office in
+  Kraków, and is a portfolio company of Seedcamp and Speedinvest.
 url: https://raw.githubusercontent.com/api-evangelist/sense-street/refs/heads/main/apis.yml
 x-type: company
 x-source: vc-portfolio
@@ -35,7 +41,7 @@ x-tier: stub
 x-tier-reason: portfolio-lead
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-21'
+modified: '2026-08-14'
 tags:
 - Company
 - Capital Markets
@@ -44,21 +50,89 @@ tags:
 - Fintech
 - Conversation Intelligence
 - OTC
-apis: []
+- Market Data
+- Natural Language Processing
+- Commodities
+- Fixed Income
+apis:
+- name: Sense Street Batch API
+  description: >-
+    The enterprise REST API. Callers upload files of broker conversations for
+    asynchronous processing and retrieve the extracted RFQs once parsing
+    completes, or call the prediction operations synchronously against a single
+    conversation or chat snippet. Bond reference data and electronic RFQ records
+    are uploaded through the same surface for instrument resolution and
+    reconciliation. Authentication is a client-signed RS256 JWT bearer assertion
+    with the caller's public key sent in an X-key header; there is no OAuth and
+    no scope surface.
+  humanURL: https://docs.sensestreet.com/batch-api
+  baseURL: https://{tenant}.api.sensestreet.com/api/v1
+  tags:
+  - Batch Processing
+  - Conversation Intelligence
+  - RFQ Extraction
+  properties:
+  - type: Documentation
+    url: https://docs.sensestreet.com/batch-api
+  - type: Authentication
+    url: authentication/sense-street-authentication.yml
+  - type: Conventions
+    url: conventions/sense-street-conventions.yml
+  - type: DataModel
+    url: data-model/sense-street-data-model.yml
+  - type: ErrorCatalog
+    url: errors/sense-street-problem-types.yml
+  - type: MCPServer
+    url: mcp/sense-street-mcp.yml
+  x-base-url-note: >-
+    The host is per-tenant and issued at onboarding. Evidence: the wildcard
+    certificate Sense Street serves carries the SANs *.api.sensestreet.com and
+    *.api.test.sensestreet.com; the first-party SDK hard-codes the JWT audience
+    claim aud=api.sensestreet.com and requires the customer to pass api_url
+    because there is no default; and the bare host api.sensestreet.com has no A
+    record. The /api/v1 path segment is appended by the SDK itself and answers
+    live (HTTP 401, "Invalid or missing token") on the Sense Street portal host.
+- name: Sense Street WebSocket API
+  description: >-
+    Real-time streaming access to quotes and market activity extracted from
+    broker conversations across multiple commodities. Customers subscribe to
+    feeds such as oil, carbon, EMEA gas and US gas to receive structured trade
+    and quote data as it is parsed, feeding Quotebook dashboards, algo models
+    and alerts.
+  humanURL: https://docs.sensestreet.com/websocket
+  baseURL: wss://{tenant}.api.sensestreet.com
+  tags:
+  - Streaming
+  - Market Data
+  - Commodities
+  properties:
+  - type: Documentation
+    url: https://docs.sensestreet.com/websocket
+  - type: Authentication
+    url: authentication/sense-street-authentication.yml
+  x-base-url-note: >-
+    Host pattern is the same per-tenant API host evidenced by the wildcard
+    certificate SANs. The exact WebSocket path and the channel/subscription
+    contract are NOT published — the docs page body requires sign-in and no
+    AsyncAPI is published — so no channel catalog is asserted here.
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
-- type: DomainSecurity
-  url: security/sense-street-domain-security.yml
 - type: Website
   url: https://sensestreet.com
 - type: DeveloperPortal
   url: https://docs.sensestreet.com
 - type: Documentation
   url: https://docs.sensestreet.com
+- type: APIReference
+  url: https://docs.sensestreet.com/batch-api
+- type: GettingStarted
+  url: https://docs.sensestreet.com/introduction
+- type: GitHubOrganization
+  url: https://github.com/sensestreet
 - type: Support
   url: https://sensestreet.com/contact
 - type: Blog
@@ -66,15 +140,37 @@ common:
 - type: PrivacyPolicy
   url: https://sensestreet.com/security-compliance/privacy-policy
 - type: Compliance
-  url: https://sensestreet.com/security-compliance/security
+  url: https://sensestreet.com/security-compliance/certifications
 - type: TrustCenter
   url: security/sense-street-trust-center.yml
 - type: Conformance
   url: conformance/sense-street-conformance.yml
+- type: DomainSecurity
+  url: security/sense-street-domain-security.yml
+- type: Packages
+  url: packages/sense-street-packages.yml
+- type: SDKs
+  url: packages/sense-street-packages.yml
+- type: Authentication
+  url: authentication/sense-street-authentication.yml
+- type: Conventions
+  url: conventions/sense-street-conventions.yml
+- type: DataModel
+  url: data-model/sense-street-data-model.yml
+- type: ErrorCatalog
+  url: errors/sense-street-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/sense-street-lifecycle.yml
+- type: Plans
+  url: plans/sense-street-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/sense-street-rate-limits.yml
+- type: MCPServer
+  url: mcp/sense-street-mcp.yml
 - type: LLMsTxt
   url: llms/sense-street-llms.txt
 x-enrichment:
-  date: '2026-07-21'
-  status: minimal
-  artifacts_added: 4
+  date: '2026-08-14'
+  status: enriched
+  artifacts_added: 10
   pass: local-v1
