@@ -1,23 +1,92 @@
-generated: '2026-07-21'
+generated: '2026-08-14'
 method: searched
-source: https://sensestreet.com/security-compliance/security
+source: https://www.sensestreet.com/security-compliance/security
 standards:
 - id: soc2-type-ii
   conforms: true
-  evidence: Security & Compliance page states a maintained SOC 2 Type II attestation.
+  evidence: >-
+    Security Information page (last updated 2025-08-04) states "Sense Street
+    maintains a SOC2 Type II attestation, ISO 27001 certification, as well as
+    Data Protection Registration Certificate."
+  source: https://www.sensestreet.com/security-compliance/security
 - id: iso-27001
   conforms: true
-  evidence: Security & Compliance page states ISO 27001 certification.
+  evidence: >-
+    Dedicated Certifications page (last updated 2025-10-25) states the company
+    was originally issued an ISO 27001:2013 certificate on 2020-12-22 and has
+    been subject to annual surveillance audits since.
+  source: https://www.sensestreet.com/security-compliance/certifications
 - id: gdpr
   conforms: true
-  evidence: Data Protection Registration Certificate; GDPR alignment marketed on homepage and privacy policy.
+  evidence: >-
+    Data Protection Registration Certificate held; a dedicated Data Privacy &
+    GDPR docs page is published, and the first-party SDK ships client-side
+    anonymisation helpers that strip identity fields out of chat exports before
+    upload.
+  source: https://docs.sensestreet.com/data-privacy-gdpr
+- id: eu-ai-act
+  conforms: true
+  evidence: >-
+    A dedicated EU AI Act docs page is published describing how the Act applies
+    to Sense Street's systems and the customer's role as Deployer. Notable: this
+    is an explicit AI-regulation posture, not a generic compliance claim.
+  source: https://docs.sensestreet.com/eu-ai-act
 - id: dora
   conforms: true
-  evidence: DORA alignment stated on the homepage for EU capital-markets customers.
+  evidence: DORA alignment stated for EU capital-markets customers.
+  source: https://www.sensestreet.com/security-compliance/security
+- id: nist-sp-800-57
+  conforms: true
+  evidence: >-
+    Cryptography & Key Management docs page states the company's key management
+    approach "aligns with recognised frameworks such as NIST SP 800-57" and is
+    supported by formal internal policy.
+  source: https://docs.sensestreet.com/cryptography-key-management
 - id: oauth2
   conforms: false
-  evidence: No public OpenAPI; docs reference SSO / role-based access but publish no OAuth2 scheme.
+  evidence: >-
+    Confirmed negative this pass. No authorization server exists: both
+    /.well-known/oauth-authorization-server and /.well-known/openid-configuration
+    return 404 on every host, and the first-party SDK implements a client-signed
+    RS256 JWT assertion (aud=api.sensestreet.com) rather than any OAuth grant.
+    There is no scope surface, hence no scopes/ artifact in this repo.
+- id: oidc
+  conforms: false
+  evidence: >-
+    No OIDC discovery document on any host. The DASHBOARD uses SSO (Google
+    Identity Services is loaded on the portal), but no OIDC metadata is published
+    for the API.
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: >-
+    Probed live. Unauthenticated calls to /api/v1/* return HTTP 401 with
+    Content-Type text/html and the bare string "Invalid or missing token" — no
+    application/problem+json, no type URI, no error code.
+- id: rfc9116-security-txt
+  conforms: false
+  evidence: '/.well-known/security.txt returns 404 on www, docs and portal.'
+- id: rfc8594-sunset-header
+  conforms: false
+  evidence: No deprecation policy or Sunset/Deprecation header contract is published.
+- id: openapi
+  conforms: false
+  evidence: >-
+    Sense Street's own Batch API page says "for exact schemas and edge-cases,
+    refer to the Swagger/OpenAPI spec" — so a spec demonstrably exists — but it
+    is not public. /api/v1/openapi.json, /api/v1/swagger.json, /api/v1/docs and
+    /api/v1/redoc all return 401 behind the edge auth gate, and no spec is served
+    from any public host.
 notes: >-
-  Compliance posture is published; API-level conformance (OAuth2/OIDC, RFC 9457
-  errors, pagination) could not be asserted because Sense Street publishes no
-  public OpenAPI — the API and its docs are gated behind a contact form.
+  Sense Street's published compliance posture is genuinely strong for a company
+  of its size — SOC 2 Type II, ISO 27001 since 2020, a Data Protection
+  Registration Certificate, and an explicit EU AI Act deployer-responsibility
+  page, which very few AI vendors publish. Its API-level conformance is the
+  opposite: no OAuth/OIDC, no RFC 9457 errors, no security.txt, no Sunset
+  headers, and an OpenAPI that exists but is issued only to customers. The gap
+  is not capability, it is publication.
+x-evidence:
+- {url: 'https://www.sensestreet.com/security-compliance/security', status: 200}
+- {url: 'https://www.sensestreet.com/security-compliance/certifications', status: 200}
+- {url: 'https://docs.sensestreet.com/eu-ai-act', status: 200}
+- {url: 'https://www.sensestreet.com/.well-known/oauth-authorization-server', status: 404}
+- {url: 'https://portal.sensestreet.com/api/v1/openapi.json', status: 401}

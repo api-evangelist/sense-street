@@ -1,0 +1,98 @@
+generated: '2026-08-14'
+method: derived
+source: >-
+  src/sensestreet/auth_header_builder.py in the first-party PyPI package
+  `sensestreet` 1.0.16 (published 2025-10-07), plus the published description of
+  https://docs.sensestreet.com/authentication
+docs: https://docs.sensestreet.com/authentication
+docs_gated: true
+summary:
+  types: [http]
+  scheme: bearer
+  bearer_format: JWT
+  signing_algorithm: RS256
+  key_model: client-held RSA key pair, public key registered with Sense Street
+  api_key_in: [header]
+  oauth2_flows: []
+  note: >-
+    Sense Street does NOT run OAuth 2.0 or OIDC. There is no authorization
+    server, no /.well-known/openid-configuration, and no scope surface — so this
+    repo carries no scopes/ artifact. Authentication is a client-signed JWT
+    bearer assertion: the customer generates an RSA key pair, registers the
+    public key with Sense Street, and the SDK mints a short-lived RS256 JWT
+    locally for every request. That is a self-issued assertion model, not a
+    token-grant model.
+schemes:
+- name: BearerJWT
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+  algorithm: RS256
+  in: header
+  header: Authorization
+  value_format: 'Bearer <RS256 JWT signed with the client private key>'
+  token_lifetime_seconds: 900
+  not_before_skew_seconds: -300
+  claims:
+  - {claim: exp, meaning: expiry, value: now + 15 minutes}
+  - {claim: nbf, meaning: not before, value: now - 5 minutes}
+  - {claim: aud, meaning: audience, value: api.sensestreet.com}
+  - {claim: application_id, meaning: the customer app id issued by Sense Street}
+  - {claim: public_key_id, meaning: identifies which registered public key signed this, default 'default.pub'}
+  - {claim: server_id, meaning: target server identifier, default 'default'}
+  - {claim: server_role, meaning: target server role, default 'default'}
+  source: packages/sense-street-packages.yml
+- name: XKeyPublicKey
+  type: apiKey
+  in: header
+  header: X-key
+  value_format: PEM-encoded RSA public key
+  required: false
+  description: >-
+    The client's RSA PUBLIC key is sent verbatim in the X-key header alongside
+    the signed bearer token, so the server can verify the assertion without a
+    prior key exchange for that request. Sending a public key is not a secret
+    disclosure.
+  source: packages/sense-street-packages.yml
+network_controls:
+- control: vpn
+  description: >-
+    "Enterprise API access is secured with VPN connectivity" — published on the
+    Sense Street authentication docs page description.
+  source: https://docs.sensestreet.com/authentication
+- control: ip-allowlisting
+  description: >-
+    Static source IPs are allowlisted per customer; the implementation page
+    states integration requires "secure API integration with static IPs and
+    authentication".
+  source: https://docs.sensestreet.com/implementation-data-requirements
+- control: edge-auth-gate
+  description: >-
+    Observed live: every path under /api/ on portal.sensestreet.com returns
+    HTTP 401 with the plain-text body "Invalid or missing token", including
+    /api/v1/openapi.json, /api/v1/docs and /api/v1/redoc. The gate is applied at
+    the nginx edge ahead of the application, so unauthenticated callers cannot
+    enumerate the surface.
+  source: probed 2026-08-14
+always_sent_headers:
+- {header: Authorization, note: only when a private key is configured}
+- {header: X-key, note: PEM public key, only when a public key path is configured}
+- {header: X-client-version, note: SDK version string, e.g. 1.0.16}
+- {header: Date, note: 'client local timestamp, format MM/DD/YYYY, HH:MM:SS'}
+- {header: Content-Type, note: application/json except on multipart file uploads}
+dashboard_authentication:
+  method: sso
+  description: >-
+    The Sense Street dashboard (portal.sensestreet.com) is separate from the API
+    and uses Single Sign-On with role-based access control and MFA. Google
+    Identity Services is loaded on the portal login page.
+  source: https://docs.sensestreet.com/dashboard-authentication
+x-evidence:
+- url: https://pypi.org/pypi/sensestreet/json
+  status: 200
+- url: https://docs.sensestreet.com/authentication
+  status: 200
+  note: page renders, body content requires sign-in; the published meta description is the readable part
+- url: https://portal.sensestreet.com/api/v1/ping
+  status: 401
+  note: 'body "Invalid or missing token"'

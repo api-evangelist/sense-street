@@ -1,0 +1,47 @@
+generated: '2026-08-14'
+method: probed
+source: >-
+  live unauthenticated responses from https://portal.sensestreet.com/api/v1/*,
+  plus the first-party PyPI client `sensestreet` 1.0.16
+limit_count: 0
+documented: false
+headers_returned: []
+retry_after: false
+status_on_exhaustion: unknown
+note: >-
+  Sense Street documents no rate limits and returns no rate-limit signal an agent
+  could read. Every unauthenticated response observed on 2026-08-14 carried
+  Server, Content-Type, and CORS headers only — no X-RateLimit-*, no RateLimit-*
+  (RFC 9331 style), no Retry-After. Nothing in the first-party client handles 429,
+  backs off, or reads a limit header, which is a strong negative signal: an SDK
+  whose vendor throttled it would need retry logic and this one has none. An
+  honest zero — recorded rather than omitted.
+limits: []
+observed_constraints:
+- constraint: request-timeout
+  value: 500
+  unit: seconds
+  scope: client-side
+  source: 'SenseStreetClient(req_timeout_sec=500) default in the first-party client'
+  note: >-
+    A 500-second client default implies long-running synchronous processing is
+    expected and tolerated, not tight per-second throttling.
+- constraint: upload-size
+  value: 1
+  unit: GB
+  scope: per-request
+  source: 'package README: "Make sure you''re not trying to upload over 1Gb of files in a single request."'
+  note: >-
+    The only published quantitative limit on the API. It is a payload ceiling on
+    POST /api/v1/conversations, not a rate limit.
+- constraint: network-allowlist
+  scope: per-customer
+  source: 'https://docs.sensestreet.com/implementation-data-requirements'
+  note: >-
+    Access is constrained by VPN connectivity and static IP allowlisting rather
+    than by published quotas — a per-tenant deployment throttles by contract, not
+    by header.
+x-evidence:
+- {url: 'https://portal.sensestreet.com/api/v1/ping', status: 401, note: 'response headers carried no rate-limit signal'}
+- {url: 'https://portal.sensestreet.com/api/v1/conversations', status: 401, note: 'response headers carried no rate-limit signal'}
+- {url: 'https://pypi.org/pypi/sensestreet/json', status: 200}

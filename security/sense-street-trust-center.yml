@@ -1,8 +1,8 @@
-generated: '2026-07-21'
+generated: '2026-08-14'
 method: searched
-source: https://sensestreet.com/security-compliance/security
+source: https://www.sensestreet.com/security-compliance/certifications
 probe: true
-url: https://sensestreet.com/security-compliance/security
+url: https://www.sensestreet.com/security-compliance/certifications
 certifications:
 - SOC 2 Type II
 - ISO 27001
@@ -10,17 +10,42 @@ certifications:
 programs:
 - GDPR
 - DORA
+- EU AI Act
+- NIST SP 800-57 (key management alignment)
+pages:
+- {name: Certifications, url: 'https://www.sensestreet.com/security-compliance/certifications', last_updated: '2025-10-25', status: 200}
+- {name: Security Information, url: 'https://www.sensestreet.com/security-compliance/security', last_updated: '2025-08-04', status: 200}
+- {name: Privacy Policy, url: 'https://www.sensestreet.com/security-compliance/privacy-policy', status: 200}
+- {name: 'InfoSec, ISO 27001 & SOC2', url: 'https://docs.sensestreet.com/infosec', status: 200, access: sign-in-required}
+- {name: Cryptography & Key Management, url: 'https://docs.sensestreet.com/cryptography-key-management', status: 200, access: sign-in-required}
+- {name: Data Privacy & GDPR, url: 'https://docs.sensestreet.com/data-privacy-gdpr', status: 200, access: sign-in-required}
+- {name: EU AI Act, url: 'https://docs.sensestreet.com/eu-ai-act', status: 200, access: sign-in-required}
+- {name: Network & Data Storage, url: 'https://docs.sensestreet.com/network-data-storage', status: 200, access: sign-in-required}
+iso_27001:
+  first_issued: '2020-12-22'
+  standard_version: 'ISO 27001:2013 (originally issued)'
+  audit_cadence: annual surveillance audits, three-year certificate cycle
+  source: https://www.sensestreet.com/security-compliance/certifications
+security_principles:
+- Least Privilege — access granted only to personnel with legitimate business need
+- Defence-in-depth — security controls implemented across all business areas
+- Continuous improvement and monitoring of implemented controls
 notes: >-
-  Sense Street publishes its security and compliance posture on its Security &
-  Compliance page. It maintains a SOC 2 Type II attestation and ISO 27001
-  certification, and holds a Data Protection Registration Certificate. The
-  company markets data sovereignty and alignment with GDPR and DORA for its
-  capital-markets customers. Certifications are not exposed via a standalone
-  trust.* subdomain; they are documented on the marketing security page.
-evidence:
-- source: https://sensestreet.com/security-compliance/security
-  keywords: [soc 2 type ii, iso 27001, data protection registration, security, compliance]
-- source: https://sensestreet.com
-  keywords: [iso27001, gdpr, dora, soc 2, data sovereignty]
+  Sense Street publishes its security and compliance posture across two dated
+  marketing pages plus a seven-page security section in the docs site. There is
+  no standalone trust.* subdomain (trust.sensestreet.com is NXDOMAIN) and no
+  automated trust-center platform (Vanta/Drata/SafeBase) — the evidence is
+  hand-maintained pages, which is why the Certifications page carries an explicit
+  "Last Updated" date. The docs-side security pages are listed publicly and
+  return 200, but their bodies require sign-in; the two marketing pages are fully
+  public and are where the substantive claims are readable.
 contact:
 - support@sensestreet.com
+- engineering@sensestreet.com
+evidence:
+- source: https://www.sensestreet.com/security-compliance/certifications
+  keywords: [iso 27001, soc 2, certification, isms, surveillance audit]
+- source: https://www.sensestreet.com/security-compliance/security
+  keywords: [soc2 type ii, iso 27001, data protection registration, least privilege, defence-in-depth]
+- source: https://www.sensestreet.com
+  keywords: [iso27001, gdpr, dora, soc 2, data sovereignty]

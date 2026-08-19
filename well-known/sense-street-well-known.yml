@@ -1,0 +1,50 @@
+generated: '2026-08-14'
+method: probed
+source: live GET of /.well-known/* on every Sense Street host
+result: no-hits
+note: >-
+  Every /.well-known/ path was probed on all three reachable Sense Street hosts
+  and none returned a real document. www.sensestreet.com and docs.sensestreet.com
+  are Framer-hosted and answer a clean 404 for every path. portal.sensestreet.com
+  is a single-page app whose catch-all returns HTTP 200 with the SPA HTML shell
+  for ANY /.well-known/* path — that is not a document, it is the app index, so
+  it is recorded here as a miss. No WellKnown and no SecurityTxt pointer is
+  emitted in apis.yml: this file documents an absence, not a presence.
+hosts:
+- host: https://www.sensestreet.com
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/agent-card.json, status: 404}
+  - {path: /.well-known/agent.json, status: 404}
+- host: https://docs.sensestreet.com
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/agent-card.json, status: 404}
+  - {path: /.well-known/agent.json, status: 404}
+- host: https://portal.sensestreet.com
+  note: >-
+    SPA catch-all. Every path below returned HTTP 200 with the same
+    "<!doctype html>" application shell rather than a document — treated as a
+    miss, not a hit. The host also serves an EXPIRED TLS certificate
+    (notAfter 2026-05-03), so these probes required certificate verification to
+    be disabled.
+  documents:
+  - {path: /.well-known/security.txt, status: 200, body: html-spa-shell, hit: false}
+  - {path: /.well-known/openid-configuration, status: 200, body: html-spa-shell, hit: false}
+  - {path: /.well-known/oauth-authorization-server, status: 200, body: html-spa-shell, hit: false}
+  - {path: /.well-known/oauth-protected-resource, status: 200, body: html-spa-shell, hit: false}
+  - {path: /.well-known/api-catalog, status: 200, body: html-spa-shell, hit: false}
+  - {path: /.well-known/agent-card.json, status: 200, body: html-spa-shell, hit: false}
+  - {path: /.well-known/agent.json, status: 200, body: html-spa-shell, hit: false}
+agent_card: none
+security_txt: none
+x-evidence:
+  fetched: '2026-08-14'

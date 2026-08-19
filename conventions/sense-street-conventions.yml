@@ -1,0 +1,157 @@
+generated: '2026-08-14'
+method: derived
+source: >-
+  src/sensestreet/sensestreet_client.py in the first-party PyPI package
+  `sensestreet` 1.0.16, plus live probes of https://portal.sensestreet.com/api/v1/*
+  and the TLS certificate served on portal.sensestreet.com
+note: >-
+  Sense Street publishes no OpenAPI. These conventions are read off the
+  first-party Python client the company itself ships to PyPI — the only public,
+  machine-readable description of its request/response contract — and confirmed
+  where possible against live unauthenticated probes. Nothing here is inferred
+  from marketing copy.
+base_path:
+  style: uri-path
+  value: /api/v1
+  derivation: >-
+    SenseStreetClient._prepare_api_url() appends "/api/v1" to whatever api_url
+    the customer supplies unless it already ends in /api/v1. Confirmed live:
+    https://portal.sensestreet.com/api/v1/ping answers 401 (authenticated), while
+    /assets/config.json answers 404 — the /api/v1 prefix is real and routed.
+  host_model: per-tenant
+  host_template: 'https://{tenant}.api.sensestreet.com'
+  host_evidence: >-
+    The wildcard certificate served on sensestreet.com hosts carries SANs
+    *.api.sensestreet.com and *.api.test.sensestreet.com, and the SDK hard-codes
+    the JWT audience claim aud=api.sensestreet.com. The bare host
+    api.sensestreet.com has no A record — customers are issued a tenant
+    subdomain, which is why the SDK requires api_url as a constructor argument
+    instead of defaulting to one.
+environments:
+- name: production
+  host_pattern: '*.api.sensestreet.com'
+- name: test
+  host_pattern: '*.api.test.sensestreet.com'
+  note: >-
+    A separate test environment exists — it is present in the wildcard cert SANs
+    and the implementation docs state onboarding requires "fully operational
+    Production and Test environments". No public/self-serve sandbox is offered
+    and no test credentials or fixtures are published, which is why this repo
+    carries no sandbox/ artifact.
+authentication:
+  style: client-signed JWT bearer (RS256) + PEM public key header
+  artifact: authentication/sense-street-authentication.yml
+idempotency:
+  supported: false
+  evidence: >-
+    No Idempotency-Key header, no idempotency parameter, and no retry-dedup
+    contract appears anywhere in the first-party client, and none is documented.
+    Uploads are POSTs that mint a new server-side file_id per call. NO
+    Idempotency pointer is emitted in apis.yml — asserting one would be false.
+pagination:
+  supported: false
+  evidence: >-
+    No page/cursor/limit/offset parameter appears in any client method. The one
+    range-style query is get_conv_file_history(since, until), which filters by
+    upload timestamp and returns the full matching map unpaged.
+  time_range_filter:
+    operation: get_conv_file_history
+    params: [since, until]
+    format: datetime
+async_processing:
+  model: submit-then-poll
+  description: >-
+    The batch surface is asynchronous. A caller POSTs files to /conversations and
+    receives a file_id per file, polls GET /conversations/status/{file_id} until
+    processing completes, then downloads GET /conversations/file/{file_id}. There
+    is no callback/webhook and no completion event — the client must poll.
+  submit: POST /api/v1/conversations
+  poll: GET /api/v1/conversations/status/{file_id}
+  retrieve: GET /api/v1/conversations/file/{file_id}
+request_shapes:
+  json_envelope:
+    predict_rfqs: {conv: <conversation object>, flags: <options object>}
+    predict_chat_snippet_rfqs: {chat_snippet: <chat snippet object>, flags: <options object>}
+  multipart:
+    conversations: 'files[] — the SDK zips the batch into a single archive by default'
+    bonds: 'file — bond reference data'
+    upload_file: 'file + file_type (ERFQ)'
+  upload_limit: 'Uploads should stay under 1 GB per request (stated in the package README).'
+  compression: 'The client zips uploads client-side by default (compress=True).'
+query_parameters:
+- name: target
+  applies_to:
+  - '/conversations/file/{file_id}'
+  - '/conversations/status/{file_id}'
+  default: RFQ_CREDIT
+  note: selects the extraction target/model applied to the processed conversations
+- name: since
+  applies_to: ['/conversations/history']
+  format: datetime
+- name: until
+  applies_to: ['/conversations/history']
+  format: datetime
+error_envelope:
+  format: non-standard
+  rfc9457: false
+  evidence: >-
+    Probed unauthenticated on 2026-08-14: every /api/* path returns HTTP 401 with
+    Content-Type text/html and the bare plain-text body "Invalid or missing
+    token". Not application/problem+json, not a JSON envelope, no error code, no
+    type URI. Authenticated error bodies are JSON — the client calls
+    response.json() on non-200 upload/status responses — but their shape is not
+    publicly documented.
+  artifact: errors/sense-street-problem-types.yml
+versioning:
+  api: uri-path (/api/v1)
+  client: >-
+    The SDK stamps its own version into the X-client-version request header on
+    every call, so the server can see which client build is talking to it.
+  artifact: lifecycle/sense-street-lifecycle.yml
+rate_limit_signaling:
+  documented: false
+  headers_observed: []
+  note: >-
+    No X-RateLimit-*, RateLimit-* or Retry-After header appears on any
+    unauthenticated response. The SDK sets a 500-second default request timeout
+    (req_timeout_sec), which suggests long-running synchronous processing rather
+    than tight rate limiting.
+  artifact: rate-limits/sense-street-rate-limits.yml
+request_tracing:
+  request_id_header: none observed
+  note: >-
+    No X-Request-Id / correlation header is set by the client or returned on the
+    unauthenticated 401. Callers correlate batch work by the server-issued
+    file_id instead.
+cors:
+  observed: true
+  allow_origin: https://portal.sensestreet.com
+  allow_methods: [GET, POST, OPTIONS]
+  allow_credentials: true
+  note: >-
+    CORS is scoped to the Sense Street portal origin only — the API is not
+    designed to be called from arbitrary browser origins.
+transport_options:
+  proxies: 'Supported — a requests-style proxies dict can be passed via request_args.'
+  custom_ca: 'Supported — request_args {"verify": "<path to CA bundle>"} for enterprise TLS interception.'
+  extra_headers: 'Supported — arbitrary extra headers can be merged into every request.'
+  note: >-
+    Both proxy and custom-CA support are unusual in a public SDK and are
+    consistent with the deployment model: calls originate from inside a bank's
+    network over VPN with allowlisted static egress IPs.
+privacy_tooling:
+  anonymisation: >-
+    The SDK ships client-side anonymisation helpers — anonymise_bbg_xml() strips
+    or hashes LoginName, FirstName, LastName, UUID, FirmNumber, AccountNumber and
+    e-mail fields out of Bloomberg chat XML before it is uploaded, and
+    anonimize_to_hash / anonimize_to_name produce deterministic pseudonyms. The
+    convention is that identity is scrubbed at the client, before the payload
+    ever reaches Sense Street.
+  source: https://docs.sensestreet.com/data-privacy-gdpr
+cross_links:
+  authentication: authentication/sense-street-authentication.yml
+  errors: errors/sense-street-problem-types.yml
+  lifecycle: lifecycle/sense-street-lifecycle.yml
+  rate_limits: rate-limits/sense-street-rate-limits.yml
+  data_model: data-model/sense-street-data-model.yml
+  packages: packages/sense-street-packages.yml

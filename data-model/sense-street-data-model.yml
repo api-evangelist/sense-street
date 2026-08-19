@@ -1,0 +1,109 @@
+generated: '2026-08-14'
+method: derived
+source: >-
+  src/sensestreet/sensestreet_client.py (SenseStreetClient.dict2conv) and
+  src/sensestreet/anonymise.py in the first-party PyPI package `sensestreet` 1.0.16
+note: >-
+  Sense Street publishes no OpenAPI and no schema document, so there is no $ref
+  graph to walk. This entity model is read directly off the conversation payload
+  the company's own Python client constructs and uploads — every field below
+  appears verbatim in the shipped source. Field types are stated only where the
+  source makes them unambiguous. Nothing is invented; where the client does not
+  reveal a field, it is absent here rather than guessed.
+entities:
+- name: Conversation
+  description: >-
+    The top-level unit submitted for extraction. A chat between a bank and a
+    client, carrying its participants and its ordered messages.
+  id_field: chat_id
+  fields:
+  - {name: chat_id, type: string, note: 'client-assigned; the SDK helper mints "<ISO timestamp>Z_auto"'}
+  - {name: participants, type: array<Participant>}
+  - {name: msgs, type: array<Message>}
+  submitted_via: [POST /api/v1/predict_rfqs, POST /api/v1/conversations]
+- name: ChatSnippet
+  description: >-
+    A cut-out of a live chat rather than a full conversation in Sense Street's
+    own format. Submitted to a separate operation because its shape differs from
+    Conversation; the README states this explicitly.
+  submitted_via: [POST /api/v1/predict_chat_snippet_rfqs]
+- name: Participant
+  description: One side of a conversation — a named person at a bank or a client firm.
+  fields:
+  - {name: login_name, type: string, note: 'chat platform login; the join key used by Message.login_name'}
+  - {name: role, type: string, enum: [Bank, Client]}
+  - {name: company_name, type: string}
+  - {name: first_name, type: string}
+  - {name: last_name, type: string}
+- name: Message
+  description: A single chat message inside a conversation.
+  id_field: msg_id
+  fields:
+  - {name: msg_id, type: string}
+  - {name: content, type: string}
+  - {name: message_time_utc, type: string, format: iso8601}
+  - {name: login_name, type: string, note: 'references Participant.login_name'}
+- name: RFQ
+  description: >-
+    The extracted request-for-quote — the product Sense Street sells. Returned by
+    the predict operations and written into the processed conversation file. Its
+    field shape is not publicly published; it is only visible to authenticated
+    callers, so no fields are listed here rather than guessed.
+  fields: []
+  extraction_target_default: RFQ_CREDIT
+  note: >-
+    The `target` query parameter on the file status/download operations selects
+    the extraction target. RFQ_CREDIT is the SDK default; other targets exist for
+    other asset classes (the product markets Fixed Income and Commodities) but
+    their identifiers are not published.
+- name: BatchFile
+  description: >-
+    A server-side record created when conversation files are uploaded. The unit
+    the asynchronous batch workflow is tracked by.
+  id_field: file_id
+  fields:
+  - {name: file_id, type: string, note: 'server-issued, one per uploaded file'}
+  - {name: status, type: string, note: 'shape not published; returned by GET /conversations/status/{file_id}'}
+  - {name: uploaded_at, type: timestamp, note: 'surfaced as the value in the history map'}
+  operations:
+    create: POST /api/v1/conversations
+    status: GET /api/v1/conversations/status/{file_id}
+    download: GET /api/v1/conversations/file/{file_id}
+    history: GET /api/v1/conversations/history
+- name: BondReferenceData
+  description: >-
+    Reference data for bonds, uploaded so extraction can resolve instruments
+    mentioned in chat. Uploaded as a file; the record shape is not published.
+  operations:
+    create: POST /api/v1/bonds
+- name: ERFQ
+  description: >-
+    Electronic RFQ records uploaded for reconciliation against the RFQs extracted
+    from conversations. Uploaded as a file with file_type=ERFQ.
+  operations:
+    create: POST /api/v1/upload_file
+- name: BloombergChatXML
+  description: >-
+    Bloomberg chat export XML — the raw source format the anonymisation helper
+    operates on before upload. Its identity-bearing fields are enumerated because
+    the SDK names each one it scrubs.
+  fields:
+  - {name: LoginName, pii: true, anonymisation: hashed}
+  - {name: FirstName, pii: true, anonymisation: pseudonym}
+  - {name: LastName, pii: true, anonymisation: pseudonym}
+  - {name: UUID, pii: true, anonymisation: blanked}
+  - {name: FirmNumber, pii: true, anonymisation: blanked}
+  - {name: AccountNumber, pii: true, anonymisation: blanked}
+  - {name: EmailAddress, pii: true, anonymisation: derived-from-LoginName}
+  - {name: CorporateEmailAddress, pii: true, anonymisation: derived-from-LoginName}
+  - {name: CompanyName, pii: true, anonymisation: 'only when bank_pattern is supplied'}
+relationships:
+- {from: Conversation, to: Participant, type: has_many, via: participants}
+- {from: Conversation, to: Message, type: has_many, via: msgs}
+- {from: Message, to: Participant, type: belongs_to, via: login_name}
+- {from: Conversation, to: RFQ, type: has_many, via: extraction}
+- {from: BatchFile, to: Conversation, type: has_many, via: uploaded file contents}
+- {from: RFQ, to: BondReferenceData, type: belongs_to, via: instrument resolution}
+- {from: RFQ, to: ERFQ, type: has_one, via: reconciliation}
+- {from: BloombergChatXML, to: Conversation, type: has_many, via: parsed source export}
+render: null

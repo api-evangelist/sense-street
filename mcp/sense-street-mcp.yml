@@ -1,0 +1,93 @@
+generated: '2026-08-14'
+method: derived
+status: candidate
+source: >-
+  src/sensestreet/sensestreet_client.py in the first-party PyPI package
+  `sensestreet` 1.0.16 — no OpenAPI exists to derive from, so the candidate tool
+  list is bound to the operations the company's own client actually calls
+deployment:
+  mode: none
+  endpoint: null
+  install: null
+  package: null
+  auth: unknown
+  verified: searched
+  note: >-
+    Sense Street ships NO MCP server — not remote, not stdio. Searched the docs
+    site (all 22 pages in the sitemap), the sensestreet GitHub org (2 public
+    repos, both static site scaffolding), npm (no @sensestreet scope, zero
+    results for "sensestreet"), and PyPI (only the REST client). mcp.sensestreet.com
+    does not resolve. No endpoint is guessed here: mode is none, and the tools
+    below are a CANDIDATE mapping API Evangelist derived, not a surface Sense
+    Street publishes.
+server:
+  name: sense-street
+  transport: null
+  url: null
+tools:
+- name: ping
+  description: Check that the Sense Street API is reachable.
+  source_operation: 'GET /api/v1/ping'
+  sdk_method: SenseStreetClient.ping
+- name: ping_auth
+  description: Check that the caller's signed assertion is accepted — an authorised ping.
+  source_operation: 'GET /api/v1/ping_auth'
+  sdk_method: SenseStreetClient.ping_auth
+- name: predict_rfqs
+  description: >-
+    Extract RFQs from a full conversation supplied in Sense Street's conversation
+    format.
+  source_operation: 'POST /api/v1/predict_rfqs'
+  sdk_method: SenseStreetClient.predict_rfqs
+  inputs: [conv, flags]
+- name: predict_chat_snippet_rfqs
+  description: >-
+    Extract RFQs from a chat snippet — a cut-out of a live chat rather than a
+    full conversation object.
+  source_operation: 'POST /api/v1/predict_chat_snippet_rfqs'
+  sdk_method: SenseStreetClient.chat_snippet_predict_rfqs
+  inputs: [chat_snippet, flags]
+- name: upload_conversations
+  description: >-
+    Upload one or more files of conversations for batch processing; returns a
+    file_id per file.
+  source_operation: 'POST /api/v1/conversations'
+  sdk_method: SenseStreetClient.upload_files_with_conversations
+  inputs: [files]
+- name: get_conversation_file_status
+  description: Check whether an uploaded conversation file has finished processing.
+  source_operation: 'GET /api/v1/conversations/status/{file_id}'
+  sdk_method: SenseStreetClient.get_conv_file_status
+  inputs: [file_id, target]
+- name: get_processed_conversation_file
+  description: Download the processed conversations for a completed file_id.
+  source_operation: 'GET /api/v1/conversations/file/{file_id}'
+  sdk_method: SenseStreetClient.get_processed_conv_file
+  inputs: [file_id, target]
+- name: get_conversation_file_history
+  description: List files uploaded within a time range, as file_id to upload timestamp.
+  source_operation: 'GET /api/v1/conversations/history'
+  sdk_method: SenseStreetClient.get_conv_file_history
+  inputs: [since, until]
+- name: upload_bond_reference_data
+  description: Upload bond reference data so extraction can resolve instruments named in chat.
+  source_operation: 'POST /api/v1/bonds'
+  sdk_method: SenseStreetClient.upload_file_with_bond_ref_data
+  inputs: [file]
+- name: upload_erfq
+  description: Upload electronic RFQ records for reconciliation against extracted RFQs.
+  source_operation: 'POST /api/v1/upload_file'
+  sdk_method: SenseStreetClient.upload_erfq
+  inputs: [file, file_type]
+tool_count: 10
+agent_readiness_note: >-
+  Even if a server existed, this API is not reachable by a general agent: the
+  host is a per-tenant subdomain issued at onboarding, calls must originate from
+  a VPN with an allowlisted static IP, and every request must carry a JWT signed
+  by a private key Sense Street has registered. Any MCP server for Sense Street
+  would necessarily be customer-deployed inside the tenant's own network.
+searched:
+- {target: 'https://docs.sensestreet.com/sitemap.xml', result: 'no MCP page among 22 published pages'}
+- {target: 'https://api.github.com/orgs/sensestreet/repos', result: 'no MCP repo'}
+- {target: 'registry.npmjs.org search "sensestreet"', result: '0 results'}
+- {target: 'mcp.sensestreet.com', result: NXDOMAIN}

@@ -1,0 +1,80 @@
+generated: '2026-08-14'
+method: searched
+source: >-
+  https://docs.sensestreet.com sitemap + page metadata, PyPI release history for
+  the first-party `sensestreet` client, and live probes of Sense Street hosts
+versioning:
+  scheme: uri-path
+  current: v1
+  docs: https://docs.sensestreet.com/batch-api
+  evidence: >-
+    The first-party client normalises every base URL to end in /api/v1, and
+    /api/v1/* answers live on portal.sensestreet.com. v1 is the only version
+    that has ever appeared in a published client — all 17 releases from 2022 to
+    2025 target it. No v0, no v2, no dated or header-negotiated versioning.
+deprecation:
+  policy_url: null
+  policy_published: false
+  sunset_header: unknown
+  note: >-
+    No deprecation policy, no Sunset/Deprecation header contract (RFC 8594), and
+    no end-of-life schedule is published anywhere on sensestreet.com or
+    docs.sensestreet.com. NO Deprecation pointer is emitted in apis.yml.
+sla:
+  url: null
+  uptime_target: null
+  note: >-
+    No public SLA. Uptime and support terms are negotiated in the enterprise
+    agreement; the security page states infrastructure is "monitored 24/7" but
+    publishes no target.
+status_page: null
+status_page_published: false
+status_page_note: >-
+  No status page exists. status.sensestreet.com does not resolve (NXDOMAIN), and
+  no status/uptime link appears in the site nav, the footer, or the docs. NO
+  StatusPage pointer is emitted in apis.yml.
+changelog:
+  published: false
+  note: >-
+    Sense Street publishes no dated API changelog. The only public version
+    history for anything in its API surface is the PyPI release history of the
+    first-party client, captured below — which is a client changelog, not an API
+    one, so this repo carries no changelog/ artifact and no ChangeLog pointer.
+client_release_history:
+  package: sensestreet (PyPI)
+  scheme: semver
+  current: 1.0.16
+  current_published: '2025-10-07'
+  first_published: '2022-10-13'
+  release_count: 17
+  recent:
+  - {version: 1.0.16, date: '2025-10-07'}
+  - {version: 1.0.15, date: '2025-10-07'}
+  - {version: 1.0.14, date: '2025-10-07'}
+  - {version: 1.0.13, date: '2025-07-01'}
+  - {version: 1.0.12, date: '2025-02-18'}
+  - {version: 1.0.11, date: '2025-01-15'}
+  - {version: 1.0.10, date: '2024-12-10'}
+  currency_note: >-
+    Actively maintained — the client shipped three releases on a single day in
+    October 2025 and has released in every year since 2022. This is the one
+    provider-published, reliably dated decay signal available for Sense Street,
+    and it points the right way.
+documentation_lifecycle:
+  docs_host: https://docs.sensestreet.com
+  last_modified: '2025-12-01'
+  last_modified_source: Last-Modified header on the docs index
+  pages_published: 22
+  access: >-
+    Page shells, titles, descriptions and the full navigation are public and in
+    the sitemap; every page BODY requires sign-in ("You need to sign in to view
+    this" / Log in / Request access).
+  security_pages_dated:
+  - {page: https://www.sensestreet.com/security-compliance/security, last_updated: '2025-08-04'}
+  - {page: https://www.sensestreet.com/security-compliance/certifications, last_updated: '2025-10-25'}
+deprecated_operations: []
+x-evidence:
+- {url: 'https://docs.sensestreet.com/sitemap.xml', status: 200}
+- {url: 'https://pypi.org/pypi/sensestreet/json', status: 200}
+- {url: 'https://portal.sensestreet.com/api/v1/ping', status: 401}
+- {url: 'https://status.sensestreet.com', status: 0, note: 'NXDOMAIN — no status page'}

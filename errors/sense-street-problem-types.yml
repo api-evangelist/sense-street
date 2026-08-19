@@ -1,0 +1,54 @@
+generated: '2026-08-14'
+method: probed
+source: live unauthenticated requests to https://portal.sensestreet.com/api/v1/* on 2026-08-14
+format: non-standard
+rfc9457: false
+note: >-
+  Sense Street publishes no error reference and no OpenAPI, so there is no
+  4xx/5xx response set to derive from. What is recorded here is what was actually
+  observed on the wire. The edge returns a bare plain-text string with a
+  text/html content type — no JSON envelope, no machine-readable code, no type
+  URI, no remediation link. Authenticated error bodies ARE JSON (the first-party
+  client calls response.json() on non-200 upload and status responses) but their
+  shape is not published and could not be observed without credentials, so no
+  entries are invented for them.
+problems:
+- status: 401
+  title: Invalid or missing token
+  body: 'Invalid or missing token'
+  content_type: text/html; charset=utf-8
+  media_type_problem_json: false
+  cause: >-
+    No Authorization bearer assertion, an expired one (the client-minted JWT
+    lives 15 minutes), or a signature that does not verify against a public key
+    registered with Sense Street.
+  remediation: >-
+    Mint a fresh RS256 JWT with the registered private key, audience
+    api.sensestreet.com, and send it as Authorization: Bearer <jwt> with the PEM
+    public key in X-key. See authentication/sense-street-authentication.yml.
+  observed_on:
+  - /api/v1/ping
+  - /api/v1/ping_auth
+  - /api/v1/predict_rfqs
+  - /api/v1/conversations
+  - /api/v1/bonds
+  - /api/v1/docs
+  - /api/v1/redoc
+  - /api/v1/openapi.json
+  scope: >-
+    Applied at the nginx edge to every path under /api/, ahead of the
+    application. The same 401 is returned for paths that exist and paths that do
+    not, so an unauthenticated caller cannot enumerate the surface — deliberate,
+    and consistent with the VPN + IP-allowlist posture.
+gaps:
+- No published error-code registry.
+- No RFC 9457 application/problem+json envelope.
+- No documented retry guidance, no Retry-After on any observed response.
+- Authenticated JSON error shapes undocumented publicly.
+x-evidence:
+- url: https://portal.sensestreet.com/api/v1/ping
+  status: 401
+  fetched: '2026-08-14'
+- url: https://portal.sensestreet.com/api/v1/openapi.json
+  status: 401
+  fetched: '2026-08-14'

@@ -1,6 +1,6 @@
-generated: '2026-07-21'
+generated: '2026-08-14'
 method: probed
-source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
+source: live DNS/TLS/HTTP probes of every reachable Sense Street host
 hosts:
 - host: sensestreet.com
   https: true
@@ -8,9 +8,83 @@ hosts:
   cert_expires: Oct  5 13:15:53 2026 GMT
   hsts: true
   hsts_max_age: 31536000
+- host: www.sensestreet.com
+  https: true
+  cert_subject: CN=www.sensestreet.com
+  cert_issued: Jul  7 21:38:41 2026 GMT
+  cert_expires: Oct  5 21:38:40 2026 GMT
+  cert_valid: true
+  hsts: true
+  hsts_max_age: 31536000
+- host: docs.sensestreet.com
+  https: true
+  cert_subject: CN=docs.sensestreet.com
+  cert_issued: Jul  7 15:08:56 2026 GMT
+  cert_expires: Oct  5 15:08:55 2026 GMT
+  cert_valid: true
+  hsts: true
+  hsts_max_age: 31536000
+- host: portal.sensestreet.com
+  https: true
+  cert_subject: CN=sensestreet.com
+  cert_issuer: "C=US, O=Let's Encrypt, CN=R13"
+  cert_issued: Feb  2 08:31:24 2026 GMT
+  cert_expires: May  3 08:31:23 2026 GMT
+  cert_valid: false
+  finding: expired-certificate
+  finding_detail: >-
+    The customer-facing Sense Street portal — the host that also serves the live
+    /api/v1 surface — presents a Let's Encrypt certificate that expired on
+    2026-05-03, more than three months before this probe. curl refuses the
+    connection with exit 60 (certificate verify failed) and every browser will
+    interstitial. This is the single most material security finding on the
+    domain, and it is trivially fixable: the same wildcard was renewed on the
+    Framer-hosted marketing hosts but not here.
+  hsts: false
+  hsts_note: >-
+    No Strict-Transport-Security header on the portal, unlike the marketing and
+    docs hosts which both set max-age=31536000.
+  wildcard_sans:
+  - '*.api.sensestreet.com'
+  - '*.api.test.sensestreet.com'
+  - '*.auth.sensestreet.com'
+  - '*.aws.sensestreet.com'
+  - '*.ds.sensestreet.com'
+  - '*.gcp.sensestreet.com'
+  - '*.sensestreet.co.uk'
+  - '*.sensestreet.com'
+  - sensestreet.co.uk
+  - sensestreet.com
+  sans_note: >-
+    The SAN list is itself a public disclosure of the deployment topology: a
+    per-tenant production API pattern (*.api.sensestreet.com), a matching test
+    environment (*.api.test.sensestreet.com), a separate auth surface
+    (*.auth.sensestreet.com), and both AWS and GCP delivery targets
+    (*.aws / *.gcp.sensestreet.com).
 domains:
 - domain: sensestreet.com
   dnssec: false
   caa: []
+  caa_note: 'No CAA record — any public CA may issue for this domain.'
   spf: true
+  spf_record: 'v=spf1 include:spf.protection.outlook.com ip4:20.90.220.112 -all'
+  spf_policy: hard-fail
   dmarc: false
+  dmarc_note: >-
+    No _dmarc.sensestreet.com TXT record. SPF is published with a -all hard fail
+    but without DMARC there is no reporting and no policy applied to the header
+    From — a gap worth closing for a vendor whose customers are banks.
+  mx: sensestreet-com.mail.protection.outlook.com
+resolution_checks:
+- {host: api.sensestreet.com, result: NXDOMAIN, note: 'bare API host does not resolve; tenants get a subdomain'}
+- {host: portal.sensestreet.com, result: 34.105.186.155}
+- {host: status.sensestreet.com, result: NXDOMAIN}
+- {host: trust.sensestreet.com, result: NXDOMAIN}
+- {host: developer.sensestreet.com, result: NXDOMAIN}
+- {host: mcp.sensestreet.com, result: NXDOMAIN}
+findings:
+- {severity: high, id: expired-certificate, host: portal.sensestreet.com}
+- {severity: medium, id: no-dmarc, domain: sensestreet.com}
+- {severity: low, id: no-caa, domain: sensestreet.com}
+- {severity: low, id: no-dnssec, domain: sensestreet.com}
+- {severity: low, id: no-hsts-on-portal, host: portal.sensestreet.com}
