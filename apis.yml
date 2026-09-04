@@ -93,8 +93,9 @@ apis:
     url: data-model/sense-street-data-model.yml
   - type: ErrorCatalog
     url: errors/sense-street-problem-types.yml
-  - type: MCPServer
+  - type: X-MCPServerCandidate
     url: mcp/sense-street-mcp.yml
+    note: 'Renamed from MCPServer 2026-09-03 (roadmap#247): the manifest self-describes as status: candidate — a tool list derived from the published API contracts, not an existing server. The scorer already read the manifest and reported mcp_server correctly; the MCPServer type was crediting the artifact-type surfaces with a server that does not exist.'
   x-base-url-note: >-
     The host is per-tenant and issued at onboarding. Evidence: the wildcard
     certificate Sense Street serves carries the SANs *.api.sensestreet.com and
@@ -176,8 +177,9 @@ common:
   url: plans/sense-street-plans-pricing.yml
 - type: RateLimits
   url: rate-limits/sense-street-rate-limits.yml
-- type: MCPServer
+- type: X-MCPServerCandidate
   url: mcp/sense-street-mcp.yml
+  note: 'Renamed from MCPServer 2026-09-03 (roadmap#247): the manifest self-describes as status: candidate — a tool list derived from the published API contracts, not an existing server. The scorer already read the manifest and reported mcp_server correctly; the MCPServer type was crediting the artifact-type surfaces with a server that does not exist.'
 - type: LLMsTxt
   url: llms/sense-street-llms.txt
 x-enrichment:
